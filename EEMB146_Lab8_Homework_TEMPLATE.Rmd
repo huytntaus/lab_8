@@ -1,0 +1,133 @@
+---
+title: "EEMB146 Lab 8 Homework"
+author: "Written by Samantha Sambado"
+date: "2024-01-02"
+output: 
+    html_document:
+      toc: true
+      toc_float: true
+---
+
+## Homework 8 - Multiple Linear Regression & Model Selection
+
+This homework will apply your data visualization skills (Lab 3), hypothesis testing (Lab 4 & 5), knowledge about residuals & how to interpret diagnostic plots (Lab 6), how to run correlation or linear regression models (Lab 7), and how to build multiple regression models and perform model selection (Lab 8). If you are having trouble with RStudio or knitting your .Rmd file please speak with a TA before the due date. **All of the information and code needed to answer homework questions can be found in Lab 8 Exercise files.**  You will be graded on completeness and correctness. 
+
+
+```{r setup, include=FALSE}
+## setting up the style of your knitted document
+knitr::opts_chunk$set(echo = TRUE, message=FALSE, warning=FALSE)
+
+################################################################################
+## installing packages
+library(readr) # package for reading in data
+library(tidyverse) # package for data wrangling 
+library(ggplot2) # package for plotting
+library(car) # package for qqPlots
+library(psych) # package for pairs.panels()
+# install.packages("kableExtra") # NEW package to make beautiful tables
+library(kableExtra) 
+# install.packages("nlme") # NEW package for fitting mixed effects models (linear models with random effects) 
+library(nlme) 
+# install.packages("janitor") # NEW package for cleaning column names
+library(janitor)
+
+################################################################################
+## upload data
+# recommend putting data into a folder called 'data'
+## upload data
+# recommend putting data into a folder called 'data'
+
+world <- read.csv("data/world.csv")
+
+```
+
+# Homework Questions
+
+## Question 1
+
+Please answer **True or False** for 1a-c.
+a) When testing the assumptions of your linear regression model you are testing the normality & equality of variance assumptions of your residuals
+b) If you build a linear regression model with 'mod1 <- `lm(y~x)` and then run the code `plot(mod1)`, you get four diagnostic plots that are showing the results of your model residuals
+c) generally, you want to choose a model with the highest AIC value
+
+
+## Question 2
+What is the difference between AIC and BIC?
+
+
+## Question 3
+
+For Question 3, we will be looking at the data set `world` which is a subset of data from the Environmental variables for world countries. All data was pulled from the Google Earth Engine  (https://earthengine.google.com/). 
+
+
+For this homework, we will focus on our outcome of interest `rain mean annually`. The purpose of this analysis is to determine what environmental variables predict mean precipitation levels by country. Try to build the best model to predict mean precipitation levels with the variables in the `world clean` data set, you may want to transform your Y variable, be sure to check for collinearity. 
+
+
+a) Check collinearity between potential Xs with a pairs.panel() figure
+```{r}
+
+#the data frame is large, I suggest sub-setting the data to a few interesting predictor variables 
+world_clean <- world %>%
+  select(c(1, 6, 7, 12, 17, 22, 27, 28)) %>%
+  na.omit() #remove all NAs from dataframe
+
+```
+
+
+b) Build three separate regression models 
+    + *Hint:Look at Exercise 1 for example*
+
+
+c) Create model diagnostic plots for each model you created in step b. What can you say about the normality and equal variance assumptions? Do you need to transform any of your variables? Don't worry if not all of your candidate models pass all of the sassumptions. What is important for this exercise is that you try to accomplish meeting the assumptions for the multiple regressions and interpret the output. 
+
+
+d) Calculate the AIC of each model and save as the variable 'results'
+
+
+e) Using the list() make a variable called 'models' with your 3 regression models you built
+    + *Hint:Look at Exercise 2 for example*
+
+
+f) Create a column on 'results' for BIC
+
+
+g) Using the lappy() perform a summary for each of your models
+    + *Hint: Look at Exercise 2 Step 6 for example*
+
+
+h) Create a forloop to extract relevant information from model summaries
+    + *Hint: Look at Exercise 2 Step 7 for example*
+
+
+i) Create a nice kable with model results. **You must include two additional arguments** besides digits and align to receive full credit. Look through https://bookdown.org/yihui/rmarkdown-cookbook/kable.html#change-column-names for examples of making a nicer table. 
+
+
+
+j) Of your 3 models, which do you think is the best fit model? Must include AIC, BIC, $R^2$ in your answer. 
+
+
+k) With your best fit model from j, separate your data into training and testing sets
+    + *Hint: Look at Exercise 3 Step 9*
+
+
+l) Use the best fit model on your TRAINING data set
+
+
+m) Use the fitted model with the training data to make predictions of your Y outcome
+
+
+
+n) Visualize how your best fit model did with predictions
+    + *Hint: Look at Exercise 3 step 12*
+
+
+o) Comment on how your best fit model performed at predicting `rain mean annually` your model prediction. What would be some ways to improve your model performance if you had unlimited money/ethics to collect all the data you wanted?
+
+
+Congratulations! You just gained a vital skill in "modelling". Model selection is as good as the biological and statistical knowledge an individual has. It may feel unsettling to make calls that aren't as clear cut, but that's what it takes to make meaningful suggestions out of the data at hand. Keep practicing these skills, and always bring your biological intuition. 
+
+
+
+### End of Homework 8
+
+
