@@ -46,14 +46,15 @@ world <- read.csv("data/world.csv")
 ## Question 1
 
 Please answer **True or False** for 1a-c.
-a) When testing the assumptions of your linear regression model you are testing the normality & equality of variance assumptions of your residuals
-b) If you build a linear regression model with 'mod1 <- `lm(y~x)` and then run the code `plot(mod1)`, you get four diagnostic plots that are showing the results of your model residuals
-c) generally, you want to choose a model with the highest AIC value
+a) When testing the assumptions of your linear regression model you are testing the normality & equality of variance assumptions of your residuals | **True**
+b) If you build a linear regression model with 'mod1 <- `lm(y~x)` and then run the code `plot(mod1)`, you get four diagnostic plots that are showing the results of your model residuals | **True**
+c) generally, you want to choose a model with the highest AIC value | **False**
 
 
 ## Question 2
 What is the difference between AIC and BIC?
-
+AIC is useful for prediction and favors more complex models if they improve fit.
+BIC is more conservative and penalizes models with more predictors more heavily.
 
 ## Question 3
 
@@ -70,6 +71,10 @@ a) Check collinearity between potential Xs with a pairs.panel() figure
 world_clean <- world %>%
   select(c(1, 6, 7, 12, 17, 22, 27, 28)) %>%
   na.omit() #remove all NAs from dataframe
+
+
+#check str data 
+str(world_clean)
 
 ```
 
