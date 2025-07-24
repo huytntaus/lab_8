@@ -76,57 +76,230 @@ world_clean <- world %>%
 #check str data 
 str(world_clean)
 
+## Step 2. Check for collineaarity between Xs with pairs.panel()
+pairs.panels(world_clean,
+             density = TRUE,
+             cor = TRUE,
+             lm = TRUE) # Looking at only potential Xs, wind & temp (-0.46) and temp & month (0.42) have higher correlation values, which we should keep in mind when we are building a model.
+
 ```
 
 
 b) Build three separate regression models 
     + *Hint:Look at Exercise 1 for example*
 
+```{r}
+
+## Step 3. Build different model types (multiple regression or mixed-effects)
+## build more complex models with the given dataset
+
+# fixed effect models
+fit_1var <- lm(rain_mean_annual ~ cropland_cover,
+               data = world_clean)
+
+fit_2var <- lm(rain_mean_annual ~ cropland_cover + tree_canopy_cover,
+               data = world_clean)
+
+fit_3var <- lm(rain_mean_annual ~ cropland_cover + tree_canopy_cover + temp_mean_annual,
+               data = world_clean)
+
+```
+
+
 
 c) Create model diagnostic plots for each model you created in step b. What can you say about the normality and equal variance assumptions? Do you need to transform any of your variables? Don't worry if not all of your candidate models pass all of the sassumptions. What is important for this exercise is that you try to accomplish meeting the assumptions for the multiple regressions and interpret the output. 
 
+```{r}
+
+
+## Step 4. Check model diagnostic plots
+# 1 var
+par(mfrow = c(2,2))
+plot(fit_1var) 
+
+
+```
+
+**Model 1 (rain ~ cropland_cover) shows non-normal residuals and heteroscedasticity, suggesting that a transformation of the response variable, such as log(rain_mean_annual), might help improve model fit.**
+
+
+```{r}
+
+# 2 var
+par(mfrow = c(2,2))
+plot(fit_2var)
+
+```
+
+**Model 2 improves the model fit but still shows some violation of assumptions. A transformation might help, but is less necessary.**
+
+
+
+```{r}
+
+# 3 var
+par(mfrow = c(2,2))
+plot(fit_3var) 
+
+```
+**Model 3, which includes temp_mean_annual, shows much better residual behavior. The residuals are more normally distributed and have relatively constant variance, so no transformation appears necessary.**
+
 
 d) Calculate the AIC of each model and save as the variable 'results'
+
+```{r}
+
+## Step 5. Calculate AIC of each model
+# because we used slightly different date for fit_mixed (ie removed all of the NAs), we can't compare that model with the fixed effect models (fit_1var...fit_3var). We encourage you to create more mixed-effect models and compare those if you are interested in building the best possible model.
+results <- AIC(fit_1var,fit_2var,fit_3var)
+
+
+```
+
 
 
 e) Using the list() make a variable called 'models' with your 3 regression models you built
     + *Hint:Look at Exercise 2 for example*
 
+```{r}
+
+## Step 6. Add other metrics to the results table
+models <- list(fit_1var,fit_2var,fit_3var) # make sure you keep your models in the same order here as they were when you created them in 'results_AIC'
+
+
+```
+
+
 
 f) Create a column on 'results' for BIC
+
+```{r}
+
+results$BIC <- sapply(models, BIC) # add a column for BIC to the results
+
+```
+
 
 
 g) Using the lappy() perform a summary for each of your models
     + *Hint: Look at Exercise 2 Step 6 for example*
+
+```{r}
+
+model_summary <- lapply(models, summary) #look up ?lapply if you have not used this function before
+
+```
+
 
 
 h) Create a forloop to extract relevant information from model summaries
     + *Hint: Look at Exercise 2 Step 7 for example*
 
 
+```{r}
+
+## Step 7. Extract relevant information from model summaries 
+# we will use a for loop to easily extract the R^2 and adj R^2 value for each model from its summary, and store them in new columns in the results table
+
+for(i in 1:length(models)){ #this creates a variable i that starts with the value i=1
+  results$rsq[i] <- model_summary[[i]]$r.squared #we assign the rsq value from model i to the i'th row of the column 'rsq' in the table 'results'
+  results$adj_rsq[i] <- model_summary[[i]]$adj.r.squared #same for adjusted rsq
+} #now we go back to the beginning of the for-loop, add 1 to the value of i, and do everything again
+
+```
+
+
 i) Create a nice kable with model results. **You must include two additional arguments** besides digits and align to receive full credit. Look through https://bookdown.org/yihui/rmarkdown-cookbook/kable.html#change-column-names for examples of making a nicer table. 
 
+```{r}
+
+
+kable(results, # data you want visualized
+      col.names = c('Model', 'df', 'AIC', 'BIC', 'rsq', 'adj_rsq'),
+      caption = "Table 1. Model comparison including AIC, BIC, and R-squared values.",
+      digits = 2, # sigfigs
+      align = "c",
+      format.args = list(big.mark = ","), # add commas to big numbers
+      booktabs = TRUE) %>%  # extra arg #1: cleaner LaTeX-style lines
+      kable_styling(full_width = FALSE, position = "center"
+      ) # change alignment
+
+```
 
 
 j) Of your 3 models, which do you think is the best fit model? Must include AIC, BIC, $R^2$ in your answer. 
 
 
+Among the 3 models, I think Model 3 (fit_3var) is the best fit model because it has the lowest AIC value of 2,766.72, compared to 2,800.76 for Model 2 (fit_2var) and 3,048.96 for Model 1 (fit_1var).
+
+Moreover, it has the lowest BIC value of 2,782.91, which accounts more strongly for model complexity, indicating that Model 3 balances fit and simplicity better than the others.
+
+Finally, Model 3 achieves the highest R-squared value of 0.79, meaning it explains 79% of the variation in mean annual rainfall—substantially more than Model 2 or Model 1.
+
+Based on these model selection metrics (AIC, BIC, and $R^2$), Model 3 is clearly the best performing model.
+
+
 k) With your best fit model from j, separate your data into training and testing sets
     + *Hint: Look at Exercise 3 Step 9*
+
+```{r}
+
+## Step 9. Separate data into a training and testing sets
+# You will separate your data into a training set (most of the data) and a test set (a few observations, or <10% of rows)
+
+splitter <- sample(1:nrow(world_clean), 15, replace = F) # pick 15 random rows from world_clean, don't replace
+world_train <- world_clean[-splitter,] # leave those rows out of training data
+world_test <- world_clean[splitter,] # use those rows to create a set of test data
+
+
+```
+
 
 
 l) Use the best fit model on your TRAINING data set
 
+```{r}
+
+## Step 10. Use the best fit model on TRAINING set
+fit_3var_train <- lm(rain_mean_annual ~ cropland_cover + tree_canopy_cover + temp_mean_annual,
+               data = world_train)
+
+```
+
+
 
 m) Use the fitted model with the training data to make predictions of your Y outcome
 
+```{r}
+
+## Step 11. Use the fitted model with training data to make predictions of your Y outcome
+fit_3var_train_predict <- predict(fit_3var_train, 
+                                  world_test)
+
+```
 
 
 n) Visualize how your best fit model did with predictions
     + *Hint: Look at Exercise 3 step 12*
 
 
+```{r}
+
+
+## Step 12. Visualize how your best fit model did with predictions
+plot(world_test$rain_mean_annual, pch = 1, ylab = "rain mean annually") # plot actual test data values
+points(fit_3var_train_predict, pch = 20, col = "red") # plot the model predictions for those points
+
+```
+
+
 o) Comment on how your best fit model performed at predicting `rain mean annually` your model prediction. What would be some ways to improve your model performance if you had unlimited money/ethics to collect all the data you wanted?
+
+My best-fit model (Model 3), which includes cropland_cover, tree_canopy_cover, and temp_mean_annual, performed fairly well at predicting rain_mean_annual in the test data. In the prediction plot, many of the red dots (predicted values) were close to the black circles (observed values), indicating that the model captured the general pattern of rainfall across countries.
+
+However, there were still some mismatches, especially at higher and lower extremes of rainfall, suggesting the model doesn't fully account for all sources of variability. This is likely due to unmeasured factors that also influence rainfall.
+
+While the current model does a good job with just a few predictors, rainfall is influenced by many interacting factors. More detailed environmental, geographic, and temporal data would likely improve model accuracy and generalizability.
 
 
 Congratulations! You just gained a vital skill in "modelling". Model selection is as good as the biological and statistical knowledge an individual has. It may feel unsettling to make calls that aren't as clear cut, but that's what it takes to make meaningful suggestions out of the data at hand. Keep practicing these skills, and always bring your biological intuition. 
